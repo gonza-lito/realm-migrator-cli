@@ -1,7 +1,8 @@
 realm-migrator-cli
 ==================
 
-Data migration tool for synced realms
+Data migration tool for synced realms.
+
 Grab your exported files from realm studio and import them into a fresh synced realm.
 
 Caveats:
