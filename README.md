@@ -29,7 +29,6 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`realm-migrator-cli hello [FILE]`](#realm-migrator-cli-hello-file)
 * [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
 * [`realm-migrator-cli import [FILE]`](#realm-migrator-cli-import-file)
 
@@ -70,7 +69,7 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
-## `realm-migrator-cli import [SCHEMA] [J]`
+## `realm-migrator-cli import [SCHEMA] [JSON]`
 
 import data from exported json file on realm studio
 
