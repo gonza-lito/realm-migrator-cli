@@ -32,25 +32,6 @@ USAGE
 * [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
 * [`realm-migrator-cli import [FILE]`](#realm-migrator-cli-import-file)
 
-## `realm-migrator-cli hello [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ realm-migrator-cli hello [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-
-EXAMPLE
-  $ realm-migrator-cli hello
-  hello world from ./src/hello.ts!
-```
-
-_See code: [src/commands/hello.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.0/src/commands/hello.ts)_
 
 ## `realm-migrator-cli help [COMMAND]`
 
