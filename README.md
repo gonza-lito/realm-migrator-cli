@@ -1,7 +1,14 @@
 realm-migrator-cli
 ==================
 
-data migration tool for realm
+Data migration tool for synced realms
+Grab your exported files from realm studio and import them into a fresh synced realm.
+
+Caveats:
+  - relations only work for primary keys
+  - Cicular relations are not supported
+  - No tests yet I'm lazy :grin:
+
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/realm-migrator-cli.svg)](https://npmjs.org/package/realm-migrator-cli)
