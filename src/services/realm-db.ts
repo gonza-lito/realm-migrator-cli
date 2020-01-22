@@ -27,7 +27,7 @@ async function openRealmWith(
 
   currentUser = Realm.Sync.User.current
 
-  const schemaMod = require(process.cwd() + schemaPath)
+  const schemaMod = require(schemaPath)
   const schema = map(keys(schemaMod), key => schemaMod[key])
   log('schema', JSON.stringify(schema))
   if (!currentUser) {

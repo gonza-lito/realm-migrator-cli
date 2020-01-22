@@ -1,6 +1,7 @@
 import {Command, flags} from '@oclif/command'
 import realmDb from '../services/realm-db'
 import JSONStream = require('JSONStream')
+import path = require('path')
 import fs = require('fs')
 
 export default class Import extends Command {
@@ -21,12 +22,12 @@ export default class Import extends Command {
     }),
     serverUrl: flags.string({
       char: 's',
-      description: 'realm object server url',
+      description: 'realm object server url w/o protocol (test.us1a.cloud.realm.io) ',
       required: true,
     }),
     realmPath: flags.string({
       char: 'r',
-      description: 'realm destination path ',
+      description: 'realm destination path (/path)',
       required: true,
     }),
   };
@@ -49,13 +50,13 @@ export default class Import extends Command {
         password,
         serverUrl,
         realmPath,
-        schema
+        path.resolve(process.cwd(), schema)
       )
 
       this.log('realm opened', realmInstance)
 
       const logger = this.log
-      const fileStream = fs.createReadStream(process.cwd() + jsonFile)
+      const fileStream = fs.createReadStream(path.resolve(process.cwd(), jsonFile))
 
       const stream = fileStream.pipe(JSONStream.parse([true, {emitPath: true}]))
       const completion = new Promise((resolve, reject) => {
@@ -83,7 +84,6 @@ export default class Import extends Command {
       stream.removeAllListeners()
       fileStream.close()
       realmInstance.close()
-      this.log('done')
     } catch (error) {
       this.log(error)
       this.exit(1)
