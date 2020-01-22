@@ -72,16 +72,25 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3
 
 ## `realm-migrator-cli import [FILE]`
 
-describe the command here
+import data from exported json file on realm studio
+
+Steps:
+on realm studio
+- Save model definitions as javascript
+- Save data -> JSON
+
+run command as follows
 
 ```
 USAGE
-  $ realm-migrator-cli import [FILE]
+  $ realm-migrator-cli import SCHEMA JSONFILE
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -h, --help                 show CLI help
+  -p, --password=password    (required) password
+  -r, --realmPath=realmPath  (required) realm destination path (/path)
+  -s, --serverUrl=serverUrl  (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
+  -u, --username=username    (required) realm user name
 ```
 
 _See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.0/src/commands/import.ts)_
