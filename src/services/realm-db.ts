@@ -10,7 +10,7 @@ import rimraf = require('rimraf')
 
 type Logger = (message?: string, ...args: any[]) => void;
 function getRealmFilePath(sessionId: string): string {
-  return `${process.cwd}/temp-${sessionId}`
+  return `${process.cwd()}/temp-${sessionId}`
 }
 // eslint-disable-next-line max-params
 async function openRealmWith(
@@ -42,7 +42,7 @@ async function openRealmWith(
 
   log('opening the realm at', `realms://${serverUrl}/${realmPath}`)
   const realmConfig = currentUser.createConfiguration({
-    path: getRealmFilePath(sessionId),
+    path: getRealmFilePath(sessionId) + '/temp-realm-file',
     sync: {
       url: `realms://${serverUrl}/${realmPath}`,
       error: (err: any) => log('error syncing relam', err),

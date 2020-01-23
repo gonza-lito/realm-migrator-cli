@@ -31,10 +31,10 @@ export default class Import extends Command {
       description: 'realm destination path (/path)',
       required: true,
     }),
-    clean: flags.string({
+    clean: flags.boolean({
       char: 'c',
       description: 'delete realm files after',
-      default: 'false',
+      default: true,
     }),
   }
 
