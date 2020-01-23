@@ -6,8 +6,12 @@ import keys = require('lodash/keys');
 import isArray = require('lodash/isArray');
 import isNil = require('lodash/isNil');
 import assert = require('assert');
+import rimraf = require('rimraf')
 
 type Logger = (message?: string, ...args: any[]) => void;
+function getRealmFilePath(sessionId: string): string {
+  return `${process.cwd}/temp-${sessionId}`
+}
 // eslint-disable-next-line max-params
 async function openRealmWith(
   log: Logger,
@@ -15,7 +19,8 @@ async function openRealmWith(
   password: string,
   serverUrl: string,
   realmPath: string,
-  schemaPath: string
+  schemaPath: string,
+  sessionId: string
 ): Promise<Realm> {
   assert(!isEmpty(user), 'user name cant be undefined')
   assert(!isEmpty(password), 'password cant be undefined')
@@ -37,6 +42,7 @@ async function openRealmWith(
 
   log('opening the realm at', `realms://${serverUrl}/${realmPath}`)
   const realmConfig = currentUser.createConfiguration({
+    path: getRealmFilePath(sessionId),
     sync: {
       url: `realms://${serverUrl}/${realmPath}`,
       error: (err: any) => log('error syncing relam', err),
@@ -175,11 +181,22 @@ async function importEntity(
   }
   return realm.syncSession?.uploadAllLocalChanges()
 }
-
+async function deleteRealmFiles(log: Logger, sessionId: string): Promise<void> {
+  const deleteComplete = new Promise<void>((resolve, reject) => {
+    rimraf(getRealmFilePath(sessionId), error => {
+      if (error) {
+        reject(error)
+      }
+      resolve()
+    })
+  })
+  return deleteComplete
+}
 // dependencies here
 export default (log: Logger) => {
   return {
     openRealmWith: partial(openRealmWith, log),
     importEntity: partial(importEntity, log),
+    deleteRealmFiles: partial(deleteRealmFiles, log),
   }
 }

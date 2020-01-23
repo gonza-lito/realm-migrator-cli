@@ -3,6 +3,7 @@ import realmDb from '../services/realm-db'
 import JSONStream = require('JSONStream')
 import path = require('path')
 import fs = require('fs')
+import uuid = require('uuid');
 
 export default class Import extends Command {
   static description = 'describe the command here';
@@ -30,6 +31,11 @@ export default class Import extends Command {
       description: 'realm destination path (/path)',
       required: true,
     }),
+    clean: flags.string({
+      char: 'c',
+      description: 'delete realm files after',
+      required: true,
+    }),
   };
 
   static args = [
@@ -40,9 +46,9 @@ export default class Import extends Command {
   async run() {
     const {args, flags} = this.parse(Import)
     const realmService = realmDb(this.log)
-    const {username, password, serverUrl, realmPath} = flags
+    const {username, password, serverUrl, realmPath, clean} = flags
     const {schema, jsonFile} = args
-
+    const currentSessionId = uuid()
     try {
       this.log('opening realm')
       const realmInstance = await realmService.openRealmWith(
@@ -50,7 +56,8 @@ export default class Import extends Command {
         password,
         serverUrl,
         realmPath,
-        path.resolve(process.cwd(), schema)
+        path.resolve(process.cwd(), schema),
+        currentSessionId
       )
 
       this.log('realm opened', realmInstance)
@@ -84,6 +91,7 @@ export default class Import extends Command {
       stream.removeAllListeners()
       fileStream.close()
       realmInstance.close()
+      await realmService.deleteRealmFiles(currentSessionId)
     } catch (error) {
       this.log(error)
       this.exit(1)

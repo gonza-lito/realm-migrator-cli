@@ -38,8 +38,7 @@ USAGE
 # Commands
 <!-- commands -->
 * [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
-* [`realm-migrator-cli import [FILE]`](#realm-migrator-cli-import-file)
-
+* [`realm-migrator-cli import SCHEMA JSONFILE`](#realm-migrator-cli-import-schema-jsonfile)
 
 ## `realm-migrator-cli help [COMMAND]`
 
@@ -58,16 +57,9 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
-## `realm-migrator-cli import [SCHEMA] [JSON]`
+## `realm-migrator-cli import SCHEMA JSONFILE`
 
-import data from exported json file on realm studio
-
-Steps:
-on realm studio
-- Save model definitions as javascript
-- Save data -> JSON
-
-run command as follows
+describe the command here
 
 ```
 USAGE
