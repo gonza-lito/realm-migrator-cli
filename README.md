@@ -37,8 +37,25 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`realm-migrator-cli export [FILE]`](#realm-migrator-cli-export-file)
 * [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
 * [`realm-migrator-cli import SCHEMA JSONFILE`](#realm-migrator-cli-import-schema-jsonfile)
+
+## `realm-migrator-cli export [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ realm-migrator-cli export [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.0/src/commands/export.ts)_
 
 ## `realm-migrator-cli help [COMMAND]`
 
@@ -66,6 +83,7 @@ USAGE
   $ realm-migrator-cli import SCHEMA JSONFILE
 
 OPTIONS
+  -c, --clean                delete realm files after
   -h, --help                 show CLI help
   -p, --password=password    (required) password
   -r, --realmPath=realmPath  (required) realm destination path (/path)
