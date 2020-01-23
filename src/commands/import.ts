@@ -94,7 +94,7 @@ export default class Import extends Command {
 
       if (clean) {
         await realmService.deleteRealmFiles(currentSessionId)
-        this.log('Deleted all realm files')
+        this.log('Deleted realm files except for realm-object-server this must be removed mannually')
       }
     } catch (error) {
       this.log(error)
