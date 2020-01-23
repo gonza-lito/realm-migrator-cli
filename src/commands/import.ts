@@ -34,14 +34,14 @@ export default class Import extends Command {
     clean: flags.string({
       char: 'c',
       description: 'delete realm files after',
-      required: true,
+      default: 'false',
     }),
-  };
+  }
 
   static args = [
     {name: 'schema', required: true},
     {name: 'jsonFile', required: true},
-  ];
+  ]
 
   async run() {
     const {args, flags} = this.parse(Import)
@@ -91,7 +91,11 @@ export default class Import extends Command {
       stream.removeAllListeners()
       fileStream.close()
       realmInstance.close()
-      await realmService.deleteRealmFiles(currentSessionId)
+
+      if (clean) {
+        await realmService.deleteRealmFiles(currentSessionId)
+        this.log('Deleted all realm files')
+      }
     } catch (error) {
       this.log(error)
       this.exit(1)
