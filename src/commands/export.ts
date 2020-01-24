@@ -4,7 +4,7 @@ import uuid = require('uuid')
 import fs = require('fs')
 import {resolvePath} from '../services/util'
 import JSONStream = require('JSONStream')
-import {isEmpty, identity} from 'lodash'
+import {isEmpty} from 'lodash'
 export default class Export extends Command {
   static description = 'describe the command here'
 
@@ -58,15 +58,16 @@ export default class Export extends Command {
     const realmService = realmDb(this.log)
     const currentSessionId = uuid()
     const outputFile = output || `./realm-export-${currentSessionId}.json`
-    const fileStream = fs.createWriteStream(resolvePath(outputFile))
-    const writeStream = JSONStream.stringifyObject()
-    writeStream.pipe(fileStream)
 
-    fileStream.on('finish', () => {
-      fileStream.close()
-    })
     try {
       const realm = await realmService.openRealmWith(username, password, serverUrl, realmPath, resolvePath(schema), currentSessionId)
+      const fileStream = fs.createWriteStream(resolvePath(outputFile))
+      const writeStream = JSONStream.stringifyObject()
+      writeStream.pipe(fileStream)
+
+      fileStream.on('finish', () => {
+        fileStream.close()
+      })
       if (!isEmpty(collections)) {
         switch (collections) {
         case '*':
@@ -99,6 +100,10 @@ export default class Export extends Command {
     } catch (error) {
       this.log('Error exporting collections', error)
     }
+
+    await realmService.deleteRealmFiles(currentSessionId)
+    this.log('Deleted realm files except for realm-object-server this must be removed mannually')
+
     this.exit()
   }
 }
