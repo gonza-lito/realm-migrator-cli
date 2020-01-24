@@ -43,7 +43,7 @@ USAGE
 
 ## `realm-migrator-cli export [FILE]`
 
-Export all of the data out of realm or singlec collections
+Export all of the data out of realm or single collections to a JSON file
 
 Query based export comming soon
 
