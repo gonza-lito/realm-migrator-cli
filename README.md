@@ -43,16 +43,22 @@ USAGE
 
 ## `realm-migrator-cli export [FILE]`
 
-describe the command here
+Export all of the data out of realm or singlec collections
+
+Query based export comming soon
 
 ```
 USAGE
-  $ realm-migrator-cli export [FILE]
+  $ realm-migrator-cli export [SCHEMA]
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -c, --collections=collections  [default: *] comma separated list of Collections i.e: Dog,Person
+  -h, --help                     show CLI help
+  -o, --output=output            output file
+  -p, --password=password        (required) password
+  -r, --realmPath=realmPath      (required) source realm
+  -s, --serverUrl=serverUrl      (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
+  -u, --username=username        (required) realm user name
 ```
 
 _See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.0/src/commands/export.ts)_

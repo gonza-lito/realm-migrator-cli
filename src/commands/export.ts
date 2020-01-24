@@ -6,7 +6,7 @@ import {resolvePath} from '../services/util'
 import JSONStream = require('JSONStream')
 import {isEmpty} from 'lodash'
 export default class Export extends Command {
-  static description = 'describe the command here'
+  static description = 'Export data to json format'
 
   static flags = {
     help: flags.help({char: 'h'}),
