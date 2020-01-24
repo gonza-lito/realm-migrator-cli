@@ -192,11 +192,88 @@ async function deleteRealmFiles(log: Logger, sessionId: string): Promise<void> {
   })
   return deleteComplete
 }
+
+function getCollection(log: Logger, realm: Realm, collectionName: string): Realm.Results<Realm.Object> {
+  return realm.objects(collectionName)
+}
+
+// code extracted from realm studio
+
+function RealmObjectToJSON(this: { [key: string]: any } & Realm.Object) {
+  const values: { [key: string]: any } = {}
+  for (const propertyName of Object.getOwnPropertyNames(this)) {
+    const value = this[propertyName]
+    if (propertyName === '_realm' || typeof value === 'function') {
+      continue // Skip this property
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      values[propertyName] = serializeValue(propertyName, value)
+    }
+  }
+  return values
+}
+
+function serializeObject(object: { [key: string]: any } & Realm.Object) {
+  // This is an object reference
+  const objectSchema = object.objectSchema()
+  if (objectSchema.primaryKey) {
+    return object[objectSchema.primaryKey]
+  }
+  // Shallow copy the object
+  return RealmObjectToJSON.call(object)
+}
+
+function serializeValue(propertyName: string, value: any) {
+  if (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+  if (value instanceof Date) {
+    return value.toISOString()
+  }
+  if (value instanceof ArrayBuffer) {
+    return Buffer.from(value).toString('base64')
+  }
+  if (
+    typeof value === 'object' &&
+    typeof value.objectSchema === 'function'
+  ) {
+    return serializeObject(value)
+  }
+  if (typeof value === 'object' && typeof value.length === 'number') {
+    if (value.type === 'object') {
+      // A list of objects
+      return value.map((item: any) => {
+        if (typeof item === 'object') {
+          return serializeObject(item)
+        }
+        return item
+      })
+    }
+    // A list of primitives
+    return [...value]
+  }
+  throw new Error(
+    `Failed to serialize '${propertyName}' field of type ${typeof value}`,
+  )
+}
+
 // dependencies here
 export default (log: Logger) => {
   return {
     openRealmWith: partial(openRealmWith, log),
     importEntity: partial(importEntity, log),
     deleteRealmFiles: partial(deleteRealmFiles, log),
+    getCollection: partial(getCollection, log),
+    prepareObjectForSeralize: (object: any) => {
+      return Object.defineProperty(object, 'toJSON', {
+        value: RealmObjectToJSON.bind(object),
+        enumerable: false,
+      })
+    },
   }
 }

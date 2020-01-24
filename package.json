@@ -1,7 +1,7 @@
 {
   "name": "realm-migrator-cli",
   "description": "data migration tool for realm",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Gonzalo Romano",
   "bin": {
     "realm-migrator-cli": "./bin/run"
