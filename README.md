@@ -28,7 +28,7 @@ $ npm install -g realm-migrator-cli
 $ realm-migrator-cli COMMAND
 running command...
 $ realm-migrator-cli (-v|--version|version)
-realm-migrator-cli/0.0.1 darwin-x64 node-v10.17.0
+realm-migrator-cli/0.0.2 darwin-x64 node-v8.16.2
 $ realm-migrator-cli --help [COMMAND]
 USAGE
   $ realm-migrator-cli COMMAND
@@ -37,8 +37,8 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
 * [`realm-migrator-cli export [SCHEMA]`](#realm-migrator-cli-export-schema)
+* [`realm-migrator-cli help [COMMAND]`](#realm-migrator-cli-help-command)
 * [`realm-migrator-cli import SCHEMA JSONFILE`](#realm-migrator-cli-import-schema-jsonfile)
 
 ## `realm-migrator-cli export [SCHEMA]`
@@ -54,12 +54,13 @@ OPTIONS
   -h, --help                     show CLI help
   -o, --output=output            output file
   -p, --password=password        (required) password
+  -q, --query=query              query to export supported form -> "class" where "filter"
   -r, --realmPath=realmPath      (required) source realm
   -s, --serverUrl=serverUrl      (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
   -u, --username=username        (required) realm user name
 ```
 
-_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.1/src/commands/export.ts)_
+_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/export.ts)_
 
 ## `realm-migrator-cli help [COMMAND]`
 
@@ -92,9 +93,12 @@ OPTIONS
   -p, --password=password                  (required) password
   -r, --realmPath=realmPath                (required) realm destination path (/path)
   -s, --serverUrl=serverUrl                (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
-  -t, --transactionMode=(single|multiple)  [default: multiple] transaction mode single (import everything under 1 transaction) multiple (make 1 transaction per entity)
+
+  -t, --transactionMode=(single|multiple)  [default: multiple] transaction mode single (import everything under 1
+                                           transaction) multiple (make 1 transaction per entity)
+
   -u, --username=username                  (required) realm user name
 ```
 
-_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.1/src/commands/import.ts)_
+_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/import.ts)_
 <!-- commandsstop -->
