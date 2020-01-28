@@ -1,12 +1,12 @@
 import {Command, flags} from '@oclif/command'
-import realmDb from '../services/realm-db'
+import realmDb, {TransactionMode} from '../services/realm-db'
 import JSONStream = require('JSONStream')
 import path = require('path')
 import fs = require('fs')
 import uuid = require('uuid');
 
 export default class Import extends Command {
-  static description = 'describe the command here';
+  static description = 'Import data into a synced realm';
 
   static flags = {
     help: flags.help({char: 'h'}),
@@ -36,6 +36,12 @@ export default class Import extends Command {
       description: 'delete realm files after',
       default: true,
     }),
+    transactionMode: flags.enum<TransactionMode>({
+      char: 't',
+      description: 'transaction mode single (import everything under 1 transaction) multiple (make 1 transaction per entity)',
+      options: ['single', 'multiple'],
+      default: TransactionMode.multiple,
+    }),
   }
 
   static args = [
@@ -46,7 +52,7 @@ export default class Import extends Command {
   async run() {
     const {args, flags} = this.parse(Import)
     const realmService = realmDb(this.log)
-    const {username, password, serverUrl, realmPath, clean} = flags
+    const {username, password, serverUrl, realmPath, clean, transactionMode} = flags
     const {schema, jsonFile} = args
     const currentSessionId = uuid()
     try {
@@ -66,6 +72,10 @@ export default class Import extends Command {
       const fileStream = fs.createReadStream(path.resolve(process.cwd(), jsonFile))
 
       const stream = fileStream.pipe(JSONStream.parse([true, {emitPath: true}]))
+      this.log('command flags', flags)
+      if (transactionMode === TransactionMode.single) {
+        realmInstance.beginTransaction()
+      }
       const completion = new Promise((resolve, reject) => {
         this.log('parsing json file')
         try {
@@ -75,7 +85,7 @@ export default class Import extends Command {
             this.pause()
             const {value, path} = data
             realmService
-            .importEntity(realmInstance, path[0], value)
+            .importEntity(realmInstance, path[0], value, transactionMode)
             .then(() => this.resume())
           })
           .on('end', function (this: NodeJS.ReadWriteStream) {
@@ -83,9 +93,13 @@ export default class Import extends Command {
           })
         } catch (error) {
           reject(error)
+          realmInstance.cancelTransaction()
         }
       })
-
+      if (transactionMode === TransactionMode.single) {
+        realmInstance.commitTransaction()
+        await realmInstance.syncSession?.uploadAllLocalChanges()
+      }
       await completion
       stream.end()
       stream.removeAllListeners()

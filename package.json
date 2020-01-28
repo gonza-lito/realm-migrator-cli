@@ -1,7 +1,7 @@
 {
   "name": "realm-migrator-cli",
   "description": "data migration tool for realm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Gonzalo Romano",
   "bin": {
     "realm-migrator-cli": "./bin/run"
@@ -49,7 +49,7 @@
   ],
   "homepage": "https://github.com/gonza-lito/realm-migrator-cli",
   "keywords": [
-    "oclif"
+    "oclif", "realm","persistence", "cli", "import", "storage"
   ],
   "license": "MIT",
   "main": "lib/index.js",

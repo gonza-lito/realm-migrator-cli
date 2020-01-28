@@ -1,10 +1,14 @@
+/* eslint-disable max-params */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable unicorn/no-abusive-eslint-disable */
 import Realm = require('realm')
 import partial = require('lodash/partial');
 import isEmpty = require('lodash/isEmpty');
 import map = require('lodash/map');
 import keys = require('lodash/keys');
-import isArray = require('lodash/isArray');
+// import isArray = require('lodash/isArray');
 import isNil = require('lodash/isNil');
+import toPairs = require('lodash/toPairs');
 import assert = require('assert');
 import rimraf = require('rimraf')
 
@@ -12,7 +16,12 @@ type Logger = (message?: string, ...args: any[]) => void;
 function getRealmFilePath(sessionId: string): string {
   return `${process.cwd()}/temp-${sessionId}`
 }
-// eslint-disable-next-line max-params
+
+export enum TransactionMode {
+  single = 'single',
+  multiple = 'multiple'
+}
+
 async function openRealmWith(
   log: Logger,
   user: string,
@@ -115,23 +124,56 @@ function getObjectByPrimaryKeyOrTemplate(
 function getOrCreateLinkingObjects(
   realm: Realm,
   propertyType: Realm.ObjectSchemaProperty,
-  primaryKeyOrKeys: string | string[]
-): any {
-  if (isEmpty(primaryKeyOrKeys)) {
+  primaryKeyOrKeysOrValues: any | any[]
+): any[] {
+  const schema = getSchemaFor(realm, propertyType.objectType)
+  assert(!isNil(schema), 'schema not found')
+
+  const hasPrimaryKey = !isNil(schema?.primaryKey)
+  if (!hasPrimaryKey) {
+    return map(primaryKeyOrKeysOrValues, obj => getObjectByPropertiesOrCreate(realm, schema!, obj))
+  }
+
+  if (hasPrimaryKey && isEmpty(primaryKeyOrKeysOrValues)) {
     return []
   }
   // no need to recurse, we'll update the linked objects if they are not present when we go through that collection.
+  return map(primaryKeyOrKeysOrValues, pk =>
+    getObjectByPrimaryKeyOrTemplate(realm, schema!, pk)
+  )
+}
+
+function getObjectByPropertiesOrCreate(realm: Realm, schema: Realm.ObjectSchema, values: Record<string, any>): any {
+  const exstingObj = realm.objects(schema.name).find((obj: any) => {
+    return toPairs(values).every(([key, value]) => obj[key] === value)
+  })
+  if (!isNil(exstingObj)) {
+    return exstingObj
+  }
+  return realm.create(schema.name, values)
+}
+
+function getOrCreateLinkingObject(
+  realm: Realm,
+  propertyType: Realm.ObjectSchemaProperty,
+  primaryKeyOrValue: string | any
+): any {
   const schema = getSchemaFor(realm, propertyType.objectType)
   assert(!isNil(schema), 'schema not found')
-  if (isArray(primaryKeyOrKeys)) {
-    return map(primaryKeyOrKeys, pk =>
-      getObjectByPrimaryKeyOrTemplate(realm, schema!, pk)
-    )
+
+  const hasPrimaryKey = !isNil(schema?.primaryKey)
+  if (!hasPrimaryKey) {
+    return getObjectByPropertiesOrCreate(realm, schema!, primaryKeyOrValue)
   }
+
+  if (hasPrimaryKey && isEmpty(primaryKeyOrValue)) {
+    throw new Error(`Type ${propertyType.objectType} has primary key but not value was provided`)
+  }
+  // no need to recurse, we'll update the linked objects if they are not present when we go through that collection.
   return getObjectByPrimaryKeyOrTemplate(
     realm,
     schema!,
-    primaryKeyOrKeys as string
+    primaryKeyOrValue as string
   )
 }
 
@@ -139,47 +181,62 @@ async function importEntity(
   log: Logger,
   realm: Realm,
   collectionName: string,
-  entity: any
+  entity: any,
+  transactionMode: TransactionMode
 ): Promise<void> {
   try {
-    realm.write(() => {
-      const schema = realm.schema.find(
-        objSchema => objSchema.name === collectionName
-      )
-      assert(!isNil(schema), `Schema for entity ${collectionName} not found`)
+    if (transactionMode === TransactionMode.multiple) {
+      realm.beginTransaction()
+    }
+    const schema = realm.schema.find(
+      objSchema => objSchema.name === collectionName
+    )
+    assert(!isNil(schema), `Schema for entity ${collectionName} not found`)
 
-      const newObject: any = {}
-      for (const prop of Reflect.ownKeys(schema!.properties)) {
-        const propertyName = prop.toString()
-        const propType = schema!.properties[
-        propertyName
-        ] as Realm.ObjectSchemaProperty
-        let value: any
-        switch (propType.type) {
-        case 'object':
-        case 'list':
-          log(
-            `creating linked object for ${collectionName} on property ${propertyName} value ${entity[propertyName]}`
-          )
-
-          value = getOrCreateLinkingObjects(
-            realm,
-            propType,
-            entity[propertyName]
-          )
-          break
-        default:
-          value = entity[propertyName]
-        }
-        newObject[propertyName] = value
+    const newObject: any = {}
+    for (const prop of Reflect.ownKeys(schema!.properties)) {
+      const propertyName = prop.toString()
+      const propType = schema!.properties[
+      propertyName
+      ] as Realm.ObjectSchemaProperty
+      let value: any
+      switch (propType.type) {
+      case 'object':
+        log(
+          `creating linked object for ${collectionName} on property ${propertyName} value ${JSON.stringify(entity[propertyName])}`
+        )
+        value = getOrCreateLinkingObject(realm,
+          propType,
+          entity[propertyName])
+        break
+      case 'list':
+        log(
+          `creating linked object for ${collectionName} on property ${propertyName} value ${JSON.stringify(entity[propertyName])}`
+        )
+        value = getOrCreateLinkingObjects(
+          realm,
+          propType,
+          entity[propertyName]
+        )
+        break
+      default:
+        value = entity[propertyName]
       }
-
-      realm.create(collectionName, newObject, Realm.UpdateMode.Modified)
-    })
+      newObject[propertyName] = value
+    }
+    realm.create(collectionName, newObject, Realm.UpdateMode.Modified)
   } catch (error) {
     log(`Error writing changes for ${collectionName} `, error)
+    if (transactionMode === TransactionMode.multiple) {
+      realm.cancelTransaction()
+      return Promise.resolve()
+    }
   }
-  return realm.syncSession?.uploadAllLocalChanges()
+  if (transactionMode === TransactionMode.multiple) {
+    realm.commitTransaction()
+    return realm.syncSession?.uploadAllLocalChanges()
+  }
+  return Promise.resolve()
 }
 async function deleteRealmFiles(log: Logger, sessionId: string): Promise<void> {
   const deleteComplete = new Promise<void>((resolve, reject) => {
@@ -206,7 +263,6 @@ function RealmObjectToJSON(this: { [key: string]: any } & Realm.Object) {
     if (propertyName === '_realm' || typeof value === 'function') {
       continue // Skip this property
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       values[propertyName] = serializeValue(propertyName, value)
     }
   }

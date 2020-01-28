@@ -6,8 +6,8 @@ Data migration tool for synced realms.
 Grab your exported files from realm studio and import them into a fresh synced realm.
 
 Caveats:
-  - relations only work for primary keys
   - Cicular relations are not supported
+  - Relations to objects with no primary key will try to reuse existing object but may create duplicates 
   - No tests yet I'm lazy :grin:
 
 
@@ -28,7 +28,7 @@ $ npm install -g realm-migrator-cli
 $ realm-migrator-cli COMMAND
 running command...
 $ realm-migrator-cli (-v|--version|version)
-realm-migrator-cli/0.0.1 darwin-x64 node-v10.17.0
+realm-migrator-cli/0.0.2 darwin-x64 node-v8.16.2
 $ realm-migrator-cli --help [COMMAND]
 USAGE
   $ realm-migrator-cli COMMAND
@@ -60,7 +60,7 @@ OPTIONS
   -u, --username=username        (required) realm user name
 ```
 
-_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.1/src/commands/export.ts)_
+_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/export.ts)_
 
 ## `realm-migrator-cli help [COMMAND]`
 
@@ -81,20 +81,24 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3
 
 ## `realm-migrator-cli import SCHEMA JSONFILE`
 
-describe the command here
+Import data into a synced realm
 
 ```
 USAGE
   $ realm-migrator-cli import SCHEMA JSONFILE
 
 OPTIONS
-  -c, --clean                delete realm files after
-  -h, --help                 show CLI help
-  -p, --password=password    (required) password
-  -r, --realmPath=realmPath  (required) realm destination path (/path)
-  -s, --serverUrl=serverUrl  (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
-  -u, --username=username    (required) realm user name
+  -c, --clean                              delete realm files after
+  -h, --help                               show CLI help
+  -p, --password=password                  (required) password
+  -r, --realmPath=realmPath                (required) realm destination path (/path)
+  -s, --serverUrl=serverUrl                (required) realm object server url w/o protocol (test.us1a.cloud.realm.io)
+
+  -t, --transactionMode=(single|multiple)  [default: multiple] transaction mode single (import everything under 1
+                                           transaction) multiple (make 1 transaction per entity)
+
+  -u, --username=username                  (required) realm user name
 ```
 
-_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.1/src/commands/import.ts)_
+_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/import.ts)_
 <!-- commandsstop -->
