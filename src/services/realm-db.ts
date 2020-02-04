@@ -158,6 +158,9 @@ function getOrCreateLinkingObject(
   propertyType: Realm.ObjectSchemaProperty,
   primaryKeyOrValue: string | any
 ): any {
+  if (isNil(primaryKeyOrValue)) {
+    return null
+  }
   const schema = getSchemaFor(realm, propertyType.objectType)
   assert(!isNil(schema), 'schema not found')
 
