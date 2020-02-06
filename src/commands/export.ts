@@ -60,7 +60,8 @@ export default class Export extends Command {
     const outputFile = output || `./realm-export-${currentSessionId}.json`
 
     try {
-      const realm = await realmService.openRealmWith(username, password, serverUrl, realmPath, resolvePath(schema), currentSessionId)
+      const schemaModel = require(resolvePath(schema))
+      const realm = await realmService.openRealmWith(username, password, serverUrl, realmPath, schemaModel, currentSessionId)
       const fileStream = fs.createWriteStream(resolvePath(outputFile))
       const writeStream = JSONStream.stringifyObject()
       writeStream.pipe(fileStream)
