@@ -28,7 +28,7 @@ $ npm install -g realm-migrator-cli
 $ realm-migrator-cli COMMAND
 running command...
 $ realm-migrator-cli (-v|--version|version)
-realm-migrator-cli/0.0.2 darwin-x64 node-v8.16.2
+realm-migrator-cli/0.0.3 darwin-x64 node-v8.16.2
 $ realm-migrator-cli --help [COMMAND]
 USAGE
   $ realm-migrator-cli COMMAND
@@ -60,7 +60,7 @@ OPTIONS
   -u, --username=username        (required) realm user name
 ```
 
-_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/export.ts)_
+_See code: [src/commands/export.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.3/src/commands/export.ts)_
 
 ## `realm-migrator-cli help [COMMAND]`
 
@@ -89,6 +89,7 @@ USAGE
 
 OPTIONS
   -c, --clean                              delete realm files after
+  -d, --duplicateRelations                 create duplicate objects for relations with no primary
   -h, --help                               show CLI help
   -p, --password=password                  (required) password
   -r, --realmPath=realmPath                (required) realm destination path (/path)
@@ -100,5 +101,5 @@ OPTIONS
   -u, --username=username                  (required) realm user name
 ```
 
-_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.2/src/commands/import.ts)_
+_See code: [src/commands/import.ts](https://github.com/gonza-lito/realm-migrator-cli/blob/v0.0.3/src/commands/import.ts)_
 <!-- commandsstop -->
