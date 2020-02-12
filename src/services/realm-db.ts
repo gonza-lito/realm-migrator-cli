@@ -1,12 +1,9 @@
-/* eslint-disable max-params */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable unicorn/no-abusive-eslint-disable */
+/* eslint-disable @typescript-eslint/no-use-before-define, max-params, unicorn/no-abusive-eslint-disable */
 import Realm = require('realm')
 import partial = require('lodash/partial');
 import isEmpty = require('lodash/isEmpty');
 import map = require('lodash/map');
 import keys = require('lodash/keys');
-// import isArray = require('lodash/isArray');
 import isNil = require('lodash/isNil');
 import toPairs = require('lodash/toPairs');
 import assert = require('assert');
@@ -28,7 +25,7 @@ async function openRealmWith(
   password: string,
   serverUrl: string,
   realmPath: string,
-  schemaPath: string,
+  schemaModels: any,
   sessionId: string
 ): Promise<Realm> {
   assert(!isEmpty(user), 'user name cant be undefined')
@@ -41,8 +38,7 @@ async function openRealmWith(
 
   currentUser = Realm.Sync.User.current
 
-  const schemaMod = require(schemaPath)
-  const schema = map(keys(schemaMod), key => schemaMod[key])
+  const schema = map(keys(schemaModels), key => schemaModels[key])
   log('schema', JSON.stringify(schema))
   if (!currentUser) {
     log('trying to log in')
@@ -124,14 +120,15 @@ function getObjectByPrimaryKeyOrTemplate(
 function getOrCreateLinkingObjects(
   realm: Realm,
   propertyType: Realm.ObjectSchemaProperty,
-  primaryKeyOrKeysOrValues: any | any[]
+  primaryKeyOrKeysOrValues: any | any[],
+  duplicateRelations: boolean
 ): any[] {
   const schema = getSchemaFor(realm, propertyType.objectType)
   assert(!isNil(schema), 'schema not found')
 
   const hasPrimaryKey = !isNil(schema?.primaryKey)
   if (!hasPrimaryKey) {
-    return map(primaryKeyOrKeysOrValues, obj => getObjectByPropertiesOrCreate(realm, schema!, obj))
+    return map(primaryKeyOrKeysOrValues, obj => getObjectByPropertiesOrCreate(realm, schema!, obj, duplicateRelations))
   }
 
   if (hasPrimaryKey && isEmpty(primaryKeyOrKeysOrValues)) {
@@ -143,7 +140,10 @@ function getOrCreateLinkingObjects(
   )
 }
 
-function getObjectByPropertiesOrCreate(realm: Realm, schema: Realm.ObjectSchema, values: Record<string, any>): any {
+function getObjectByPropertiesOrCreate(realm: Realm, schema: Realm.ObjectSchema, values: Record<string, any>, duplicateRelations: boolean): any {
+  if (duplicateRelations) {
+    return realm.create(schema.name, values)
+  }
   const exstingObj = realm.objects(schema.name).find((obj: any) => {
     return toPairs(values).every(([key, value]) => obj[key] === value)
   })
@@ -156,14 +156,18 @@ function getObjectByPropertiesOrCreate(realm: Realm, schema: Realm.ObjectSchema,
 function getOrCreateLinkingObject(
   realm: Realm,
   propertyType: Realm.ObjectSchemaProperty,
-  primaryKeyOrValue: string | any
+  primaryKeyOrValue: string | any,
+  duplicateRelations: boolean
 ): any {
+  if (isNil(primaryKeyOrValue)) {
+    return null
+  }
   const schema = getSchemaFor(realm, propertyType.objectType)
   assert(!isNil(schema), 'schema not found')
 
   const hasPrimaryKey = !isNil(schema?.primaryKey)
   if (!hasPrimaryKey) {
-    return getObjectByPropertiesOrCreate(realm, schema!, primaryKeyOrValue)
+    return getObjectByPropertiesOrCreate(realm, schema!, primaryKeyOrValue, duplicateRelations)
   }
 
   if (hasPrimaryKey && isEmpty(primaryKeyOrValue)) {
@@ -182,7 +186,8 @@ async function importEntity(
   realm: Realm,
   collectionName: string,
   entity: any,
-  transactionMode: TransactionMode
+  transactionMode: TransactionMode,
+  duplicateRelations: boolean
 ): Promise<void> {
   try {
     if (transactionMode === TransactionMode.multiple) {
@@ -207,7 +212,7 @@ async function importEntity(
         )
         value = getOrCreateLinkingObject(realm,
           propType,
-          entity[propertyName])
+          entity[propertyName], duplicateRelations)
         break
       case 'list':
         log(
@@ -216,7 +221,8 @@ async function importEntity(
         value = getOrCreateLinkingObjects(
           realm,
           propType,
-          entity[propertyName]
+          entity[propertyName],
+          duplicateRelations
         )
         break
       default:
@@ -224,6 +230,7 @@ async function importEntity(
       }
       newObject[propertyName] = value
     }
+    log(`Creating object ${collectionName} with values: ${JSON.stringify(newObject)}`)
     realm.create(collectionName, newObject, Realm.UpdateMode.Modified)
   } catch (error) {
     log(`Error writing changes for ${collectionName} `, error)
